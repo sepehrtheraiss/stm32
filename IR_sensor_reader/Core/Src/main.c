@@ -1,4 +1,3 @@
-/* USER CODE BEGIN Header */
 /**
   ******************************************************************************
   * @file           : main.c
@@ -15,63 +14,27 @@
   *
   ******************************************************************************
   */
-/* USER CODE END Header */
-/* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "stm32f446xx.h"
 #include "stm32f4xx_hal.h"
-#include "stm32f4xx_hal_def.h"
-#include "stm32f4xx_hal_gpio.h"
+#include "stm32f4xx_hal_uart.h"
+#include <stdint.h>
 #include <stdio.h>
 
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
+// (APB2 90Mhz)
+#define HUART1 0U
+// (APB1 45Mhz)
+#define HUART2 1U
+#define HUART3 2U
 
-/* USER CODE END Includes */
+#define HUART_SIZE 3U
+#define DEBUG_CONSOLE HUART3
+UART_HandleTypeDef huart[HUART_SIZE];
 
-/* Private typedef -----------------------------------------------------------*/
-/* USER CODE BEGIN PTD */
-
-/* USER CODE END PTD */
-
-/* Private define ------------------------------------------------------------*/
-/* USER CODE BEGIN PD */
-
-/* USER CODE END PD */
-
-/* Private macro -------------------------------------------------------------*/
-/* USER CODE BEGIN PM */
-
-/* USER CODE END PM */
-
-/* Private variables ---------------------------------------------------------*/
-UART_HandleTypeDef huart2;
-UART_HandleTypeDef huart1;
-
-/* USER CODE BEGIN PV */
-
-/* USER CODE END PV */
-
-/* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_USART2_UART_Init(void);
-static void MX_USART1_UART_Init(void);
-static void MX_USART0_UART_Init(void);
+static void MX_USART_UART_Init(uint8_t idx, USART_TypeDef* usart);
 
-int _write(int file, char *ptr, int len)
-{
-    // Redirect all printf output to USART1
-    HAL_UART_Transmit(&huart1, (uint8_t*)ptr, len, HAL_MAX_DELAY);
-    return len;
-}
-/* USER CODE BEGIN PFP */
-
-/* USER CODE END PFP */
-
-/* Private user code ---------------------------------------------------------*/
-/* USER CODE BEGIN 0 */
-
-/* USER CODE END 0 */
 
 /**
   * @brief  The application entry point.
@@ -80,56 +43,28 @@ int _write(int file, char *ptr, int len)
 int main(void)
 {
 
-  /* USER CODE BEGIN 1 */
-
-  /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-
-  /* USER CODE BEGIN Init */
-
-  /* USER CODE END Init */
-
   /* Configure the system clock */
   SystemClock_Config();
 
-  /* USER CODE BEGIN SysInit */
-
-  /* USER CODE END SysInit */
-
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_USART2_UART_Init();
-  MX_USART1_UART_Init();
-  MX_USART0_UART_Init();
-  /* USER CODE BEGIN 2 */
-  //LD2_GPIO_Port->ODR = LD2_Pin;
-  // HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
-  //HAL_Delay(2000);
-  //LD2_GPIO_Port->ODR = 0;
-  // HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
-  /* USER CODE END 2 */
-
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-  char *msg = "Hello from STM32!\r\n";
-  //uint8_t tx_data = 'A';
-  //uint8_t rx_data = 0;
+  MX_USART_UART_Init(HUART1, USART1);
+  MX_USART_UART_Init(HUART2, USART2);
+  MX_USART_UART_Init(HUART3, USART3);
+  uint8_t msg[] = "hello world 1!\r\n";
+  HAL_StatusTypeDef status;
   while (1)
   {
-    /* USER CODE END WHILE */
-    //HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-    //HAL_UART_Transmit(&huart1, (uint8_t*)msg, 19, 10);
-    printf("%s", msg);
-    HAL_Delay(1000);
-    //HAL_UART_Transmit(&huart1, &tx_data, 1, 10);
-    //HAL_UART_Receive(&huart1, &rx_data, 1, 10);
-    /* USER CODE BEGIN 3 */
+    status = HAL_UART_Transmit(&huart[HUART1], msg, sizeof(msg), 10);
+    printf("status: 0x%x\n", status);
+    HAL_Delay(1000U);
+
   }
-  /* USER CODE END 3 */
 }
 
 /**
@@ -178,69 +113,23 @@ void SystemClock_Config(void)
     Error_Handler();
   }
 }
-
 /**
-  * @brief USART2 Initialization Function
+  * @brief USART Initialization Function (APB2 90Mhz)
   * @param None
   * @retval None
   */
-static void MX_USART2_UART_Init(void)
+static void MX_USART_UART_Init(uint8_t idx, USART_TypeDef* usart)
 {
 
-  /* USER CODE BEGIN USART2_Init 0 */
-
-  /* USER CODE END USART2_Init 0 */
-
-  /* USER CODE BEGIN USART2_Init 1 */
-
-  /* USER CODE END USART2_Init 1 */
-  huart2.Instance = USART2;
-  huart2.Init.BaudRate = 115200;
-  huart2.Init.WordLength = UART_WORDLENGTH_8B;
-  huart2.Init.StopBits = UART_STOPBITS_1;
-  huart2.Init.Parity = UART_PARITY_NONE;
-  huart2.Init.Mode = UART_MODE_TX_RX;
-  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
-  if (HAL_UART_Init(&huart2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN USART2_Init 2 */
-
-  /* USER CODE END USART2_Init 2 */
-
-}
-
-static void MX_USART1_UART_Init(void)
-{
-
-  huart1.Instance = USART1;
-  huart1.Init.BaudRate = 115200;
-  huart1.Init.WordLength = UART_WORDLENGTH_8B;
-  huart1.Init.StopBits = UART_STOPBITS_1;
-  huart1.Init.Parity = UART_PARITY_NONE;
-  huart1.Init.Mode = UART_MODE_TX_RX;
-  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
-  if (HAL_UART_Init(&huart1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-}
-
-static void MX_USART0_UART_Init(void)
-{
-
-  huart1.Instance = USART0;
-  huart0.Init.BaudRate = 115200;
-  huart0.Init.WordLength = UART_WORDLENGTH_8B;
-  huart0.Init.StopBits = UART_STOPBITS_1;
-  huart0.Init.Parity = UART_PARITY_NONE;
-  huart0.Init.Mode = UART_MODE_TX_RX;
-  huart0.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
-  if (HAL_UART_Init(&huart0) != HAL_OK)
+  huart[idx].Instance = usart;
+  huart[idx].Init.BaudRate = 115200;
+  huart[idx].Init.WordLength = UART_WORDLENGTH_8B;
+  huart[idx].Init.StopBits = UART_STOPBITS_1;
+  huart[idx].Init.Parity = UART_PARITY_NONE;
+  huart[idx].Init.Mode = UART_MODE_TX_RX;
+  huart[idx].Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart[idx].Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart[idx]) != HAL_OK)
   {
     Error_Handler();
   }
@@ -285,9 +174,12 @@ static void MX_GPIO_Init(void)
   /* USER CODE END MX_GPIO_Init_2 */
 }
 
-/* USER CODE BEGIN 4 */
-
-/* USER CODE END 4 */
+int _write(int file, char *ptr, int len)
+{
+    // Redirect all printf output to USART1
+    HAL_UART_Transmit(&huart[DEBUG_CONSOLE], (uint8_t*)ptr, len, HAL_MAX_DELAY);
+    return len;
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.
