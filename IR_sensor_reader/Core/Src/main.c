@@ -20,6 +20,7 @@
 #include "stm32f4xx_hal_uart.h"
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 // (APB2 90Mhz)
 #define HUART1 0U
@@ -56,11 +57,11 @@ int main(void)
   MX_USART_UART_Init(HUART1, USART1);
   MX_USART_UART_Init(HUART2, USART2);
   MX_USART_UART_Init(HUART3, USART3);
-  uint8_t msg[] = "hello world 1!\r\n";
+  char* msg = "hello world!\r\n";
   HAL_StatusTypeDef status;
   while (1)
   {
-    status = HAL_UART_Transmit(&huart[HUART1], msg, sizeof(msg), 10);
+    status = HAL_UART_Transmit(&huart[HUART1], (uint8_t*)msg, strlen(msg), 10);
     printf("status: 0x%x\n", status);
     HAL_Delay(1000U);
 
